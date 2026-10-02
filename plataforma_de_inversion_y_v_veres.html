@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGROVIV Capital | Inversión Colectiva y Desintermediación de Víveres</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icon Font (NO SVG) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        amberAccent: {
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        slateDark: '#0f172a',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos obligatorios para contenedores de Chart.js */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 280px;
+            max-height: 380px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 340px;
+            }
+        }
+        
+        /* Personalización de rangos y scrollbars */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #059669;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(5, 150, 105, 0.4);
+        }
+        
+        .custom-glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+
+    <!-- Placeholder Comments requeridos por directivas -->
+    <!-- Chosen Palette: Warm Neutral FinTech (Bg: #F8FAFC, Cards: #FFFFFF, Text: #0F172A, Primary Accent: #059669 Emerald, Secondary Accent: #D97706 Amber) -->
+    <!-- Application Structure Plan: Diseñada como una dashboard temática interactiva en 5 secciones de alta legibilidad. 1. Hero con resumen analítico y KPIs macroeconómicos de la cadena alimentaria. 2. Simulador Financiero reactivo con proyección interactiva Chart.js y desglose paramétrico de la fórmula de retorno ($ROI_{lote}$). 3. Catálogo interactivo de Lotes de Víveres (Pools) con filtrado dinamizado por categoría de alimento y barras de avance. 4. Análisis comparativo de desintermediación comercial mediante gráfico de barras acumuladas. 5. Matriz de mitigación de riesgos con pestañas navegables (Warrants, Seguros, First-loss). Razón: Esta estructura convierte un informe técnico financiero en un flujo lógico donde el usuario comprende primero el valor económico, calcula su retorno, revisa el activo subyacente (víveres reales) y confirma la seguridad de su capital. -->
+    <!-- Visualization & Content Choices: 1. Calculadora de Retorno -> Controles deslizantes + Line Plot en Chart.js -> Demuestra el crecimiento del capital e interés compuesto por rotación de lotes. 2. Desglose de Eficiencia de Cadena -> Bar Plot en Chart.js -> Compara los costos e intermediarios del modelo tradicional vs modelo AGROVIV. 3. Pools de Inversión -> Bento Grid interactivo con filtros JS y modal transaccional -> Permite explorar volumen, producto, ubicación y APY por lote. 4. Mitigación de Riesgos -> Módulos interactivos en HTML/CSS -> Explicación visual de garantías reales sin usar gráficos vectoriales SVG ni Mermaid. Confirmado: Canvas para gráficos, 0% SVG, 0% Mermaid JS. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+
+<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <!-- BARRA DE NAVEGACIÓN PRINCIPAL -->
+    <header class="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/90 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold text-xl shadow-md shadow-brand-600/30">
+                    <i class="fa-solid fa-wheat-awn"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight text-slate-900">AGROVIV <span class="text-brand-600">Capital</span></span>
+                    <span class="hidden sm:inline-block text-xs font-semibold px-2 py-0.5 ml-2 bg-brand-50 text-brand-700 border border-brand-200 rounded-full">Víveres & Fintech</span>
+                </div>
+            </div>
+
+            <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+                <a href="#modelo" class="hover:text-brand-600 transition-colors">Modelo Operativo</a>
+                <a href="#simulador" class="hover:text-brand-600 transition-colors">Simulador ROI</a>
+                <a href="#lotes" class="hover:text-brand-600 transition-colors">Lotes Activos</a>
+                <a href="#cadena" class="hover:text-brand-600 transition-colors">Cadena de Valor</a>
+                <a href="#garantias" class="hover:text-brand-600 transition-colors">Garantías</a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <button onclick="abrirModalInversion('Inversión General en Pool de Víveres', '14.2%', '$50,000')" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl shadow-lg shadow-brand-600/25 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                    <i class="fa-solid fa-wallet mr-2"></i> Invertir en Lote
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+
+        <!-- SECCIÓN 1: HERO & VISIÓN GENERAL MACROECONÓMICA -->
+        <section id="modelo" class="space-y-8">
+            <!-- Introducción contextual obligatoria -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm relative overflow-hidden">
+                <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-brand-50 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="max-w-3xl space-y-4 relative z-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-100 text-brand-800 text-xs font-bold uppercase tracking-wider">
+                        <i class="fa-solid fa-chart-line"></i> Desintermediación Agroalimentaria
+                    </div>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                        Convergencia de Microinversión Colectiva y Suministro de <span class="text-brand-600 underline decoration-brand-500/30">Víveres Críticos</span>
+                    </h1>
+                    <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
+                        Esta plataforma conecta directamente el capital de microinversores con la prefinanciación masiva de inventarios de primera necesidad (granos, aceites, harinas y proteínas). Al eliminar hasta 5 eslabones de intermediación especulativa, garantizamos descuentos directos del 15% al 30% en origen y generamos rendimientos reales respaldados en inventario físico de consumo inelástico.
+                    </p>
+                </div>
+
+                <!-- Tarjetas de KPIs del Ecosistema -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mt-8 pt-8 border-t border-slate-100">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Víveres Mobilizados</div>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono">14,820 <span class="text-sm font-sans font-semibold text-brand-600">TN</span></div>
+                        <div class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-truck-ramp-box text-brand-600 mr-1"></i> Arroz, frijol, aceite, harina</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Capital Prefinanciado</div>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono">$5.2M <span class="text-sm font-sans font-semibold text-brand-600">USD</span></div>
+                        <div class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-users text-brand-600 mr-1"></i> +3,400 microinversores</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Giro Medio ($T_{rot}$)</div>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono">58 <span class="text-sm font-sans font-semibold text-amberAccent-600">Días</span></div>
+                        <div class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-rotate-right text-amberAccent-600 mr-1"></i> 6.2 rotaciones anuales</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Rendimiento Promedio</div>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-brand-600 font-mono">14.2% <span class="text-sm font-sans font-semibold">APY</span></div>
+                        <div class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-shield-halved text-brand-600 mr-1"></i> Con colateral prendario</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: SIMULADOR INTERACTIVO DE RENDIMIENTO & INGENIERÍA FINANCIERA -->
+        <section id="simulador" class="space-y-6">
+            <!-- Introducción contextual -->
+            <div class="space-y-2">
+                <div class="inline-flex items-center gap-2 text-xs font-bold text-brand-700 bg-brand-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                    <i class="fa-solid fa-calculator"></i> Ingeniería Financiera Aplicada
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Simulador Reactivo de Retorno Operativo</h2>
+                <p class="text-slate-600 max-w-4xl text-sm sm:text-base">
+                    A diferencia de los instrumentos bursátiles abstractos, el retorno de los lotes de alimentos depende de la velocidad física de giro ($T_{rot}$), la deducción por mermas biológicas ($\delta_i$) y los costos logísticos integrados ($C_{ops}$). Utiliza este simulador para calcular tus rendimientos según el volumen y la rotación estimada.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <!-- Panel de Controles Parámetros -->
+                <div class="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
+                    <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center justify-between">
+                        <span>Parámetros de Inversión</span>
+                        <i class="fa-solid fa-sliders text-brand-600"></i>
+                    </h3>
+
+                    <!-- Control: Capital Inicial -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm font-semibold">
+                            <label for="range-capital" class="text-slate-700">Capital Aportado ($I_0$)</label>
+                            <span id="label-capital" class="text-brand-600 font-mono font-bold">$5,000 USD</span>
+                        </div>
+                        <input id="range-capital" type="range" min="500" max="50000" step="500" value="5000" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-600" oninput="actualizarSimulacion()">
+                        <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+                            <span>$500 USD</span>
+                            <span>$25,000 USD</span>
+                            <span>$50,000 USD</span>
+                        </div>
+                    </div>
+
+                    <!-- Control: Plazo / Rotaciones -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm font-semibold">
+                            <label for="range-meses" class="text-slate-700">Horizonte Temporal</label>
+                            <span id="label-meses" class="text-brand-600 font-mono font-bold">6 Meses (3 Ciclos)</span>
+                        </div>
+                        <input id="range-meses" type="range" min="2" max="12" step="2" value="6" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-600" oninput="actualizarSimulacion()">
+                        <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+                            <span>2 Meses (1 Giro)</span>
+                            <span>6 Meses (3 Giros)</span>
+                            <span>12 Meses (6 Giros)</span>
+                        </div>
+                    </div>
+
+                    <!-- Control: Tipo de Vívere / Perfil de Riesgo -->
+                    <div class="space-y-2">
+                        <label for="select-categoria" class="block text-sm font-semibold text-slate-700">Categoría de Vívere Subyacente</label>
+                        <select id="select-categoria" onchange="actualizarSimulacion()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-brand-500 outline-none">
+                            <option value="0.138" selected>Abarrotes Secos (Arroz, Frijol, Maíz) - APY 13.8% (Baja merma)</option>
+                            <option value="0.145">Aceites Vegetales & Harinas - APY 14.5% (Alta rotación)</option>
+                            <option value="0.160">Proteína Conservada & Cadena de Frío - APY 16.0% (Mayor margen)</option>
+                        </select>
+                    </div>
+
+                    <!-- Resultados Financieros Directos -->
+                    <div class="bg-slate-900 rounded-2xl p-5 text-white space-y-4">
+                        <div class="grid grid-cols-2 gap-4 border-b border-slate-800 pb-4">
+                            <div>
+                                <div class="text-[11px] text-slate-400 uppercase font-bold tracking-wider">Ganancia Estimada</div>
+                                <div id="res-ganancia" class="text-2xl font-extrabold text-brand-500 font-mono">$345 USD</div>
+                            </div>
+                            <div>
+                                <div class="text-[11px] text-slate-400 uppercase font-bold tracking-wider">Tasa Anual (APY)</div>
+                                <div id="res-apy" class="text-2xl font-extrabold text-amberAccent-500 font-mono">13.8%</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-xs text-slate-300">
+                            <span>Monto Total al Finalizar:</span>
+                            <span id="res-total" class="font-bold text-white font-mono text-sm">$5,345 USD</span>
+                        </div>
+                    </div>
+
+                    <!-- Botón CTA modal -->
+                    <button onclick="abrirModalInversionConSimulacion()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all text-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lock"></i> Suscribir Contrato de Inversión
+                    </button>
+                </div>
+
+                <!-- Visualización Gráfica y Explicación Matemática -->
+                <div class="lg:col-span-7 space-y-6">
+                    <!-- Gráfico Proyección de Crecimiento -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="text-base font-bold text-slate-900">Proyección de Crecimiento del Capital</h4>
+                                <p class="text-xs text-slate-500">Comparativa: Re-inversión en Víveres vs. Depósito Bancario Tradicional</p>
+                            </div>
+                            <span class="text-xs bg-slate-100 font-mono font-semibold px-2.5 py-1 rounded-lg text-slate-600">Simulación Temporal</span>
+                        </div>
+
+                        <!-- Contenedor del Chart.js con restricciones de altura estricta -->
+                        <div class="chart-container">
+                            <canvas id="chartProyeccion"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Fórmulas y Explicación Teórica -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-3">
+                        <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wider text-brand-700 flex items-center gap-2">
+                            <i class="fa-solid fa-square-root-variable"></i> Modelado Matemático del Retorno ($ROI_{lote}$)
+                        </h4>
+                        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs font-mono text-slate-800 overflow-x-auto">
+                            ROI_{lote} = \frac{\left[ \sum_{i=1}^{n} Q_i \cdot P_{v,i} \cdot (1 - \delta_i) \right] - \left[ \sum_{i=1}^{n} Q_i \cdot P_{c,i} \right] - C_{ops} - C_{fin}}{I_0}
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Donde <strong>$Q_i$</strong> es el volumen en toneladas del vívere $i$; <strong>$P_{v,i}$</strong> es el precio de venta acordado con el supermercado; <strong>$\delta_i$</strong> representa la tasa biológica de merma ($< 1.5\%$); <strong>$P_{c,i}$</strong> es el precio de compra directa en finca/molino; <strong>$C_{ops}$</strong> incluye fletes y bodega; y <strong>$I_0$</strong> es el capital reunido por los inversores.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: PORTAFOLIO INTERACTIVO DE LOTES DE VÍVERES (POOLS) -->
+        <section id="lotes" class="space-y-6">
+            <!-- Introducción contextual -->
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div class="space-y-2">
+                    <div class="inline-flex items-center gap-2 text-xs font-bold text-brand-700 bg-brand-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                        <i class="fa-solid fa-boxes-packing"></i> Mercado Real Transaccional
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Lotes de Consumo en Prefinanciación</h2>
+                    <p class="text-slate-600 text-sm sm:text-base max-w-2xl">
+                        Explore los lotes de víveres actualmente abiertos para captación. Cada lote cuenta con contratos de compra preconcluidos con cadenas minoristas y almacenes generales de depósito.
+                    </p>
+                </div>
+
+                <!-- Botones de Filtro -->
+                <div class="flex flex-wrap gap-2" id="filtro-lotes-container">
+                    <button onclick="filtrarLotes('todos')" class="btn-filtro active bg-brand-600 text-white font-semibold text-xs px-3.5 py-2 rounded-xl transition-all">Todos los Lotes</button>
+                    <button onclick="filtrarLotes('granos')" class="btn-filtro bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold text-xs px-3.5 py-2 rounded-xl transition-all">Granos Secos</button>
+                    <button onclick="filtrarLotes('aceites')" class="btn-filtro bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold text-xs px-3.5 py-2 rounded-xl transition-all">Aceites y Harinas</button>
+                    <button onclick="filtrarLotes('frio')" class="btn-filtro bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold text-xs px-3.5 py-2 rounded-xl transition-all">Cadena de Frío</button>
+                </div>
+            </div>
+
+            <!-- Grilla de Tarjetas de Lotes (Bento Grid Style) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="grid-lotes">
+                <!-- Lote 1 -->
+                <div class="lote-card granos bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-5">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-bold text-brand-700 bg-brand-50 border border-brand-200 px-2.5 py-1 rounded-lg">LOTE #104 ● ABIERTO</span>
+                            <span class="text-xs font-extrabold text-amberAccent-600 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 font-mono">13.8% APY</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 leading-snug">Contenedor Frijol Negro & Arroz Precocido (40 TN)</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Prefinanciación de compra directa en cooperativa agrícola nacional. Entrega pignorada en la Central Regional de Abastos.
+                        </p>
+                    </div>
+
+                    <div class="space-y-3 pt-3 border-t border-slate-100">
+                        <div class="flex justify-between text-xs font-semibold text-slate-600">
+                            <span>Avance de Fondeo</span>
+                            <span class="font-mono text-brand-600 font-bold">$37,500 / $50,000 USD (75%)</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                            <div class="bg-brand-600 h-full rounded-full" style="width: 75%"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-500 pt-1 font-mono">
+                            <div><i class="fa-solid fa-clock text-slate-400 mr-1"></i> Rotación: 60 Días</div>
+                            <div><i class="fa-solid fa-shield text-brand-600 mr-1"></i> Garantía: Warrant</div>
+                        </div>
+                    </div>
+
+                    <button onclick="abrirModalInversion('Lote #104: Frijol y Arroz', '13.8%', '$50,000')" class="w-full bg-slate-900 hover:bg-brand-600 text-white font-semibold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                        Participar en este Lote <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Lote 2 -->
+                <div class="lote-card aceites bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-5">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-bold text-brand-700 bg-brand-50 border border-brand-200 px-2.5 py-1 rounded-lg">LOTE #105 ● ABIERTO</span>
+                            <span class="text-xs font-extrabold text-amberAccent-600 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 font-mono">14.2% APY</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 leading-snug">Consolidado Aceite Vegetal Refinado & Harina Industrial</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Lote de alta rotación destinado a la red regional de distribuidores de abarrotes. Pago garantizado vía carta de crédito.
+                        </p>
+                    </div>
+
+                    <div class="space-y-3 pt-3 border-t border-slate-100">
+                        <div class="flex justify-between text-xs font-semibold text-slate-600">
+                            <span>Avance de Fondeo</span>
+                            <span class="font-mono text-brand-600 font-bold">$72,000 / $80,000 USD (90%)</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                            <div class="bg-brand-600 h-full rounded-full" style="width: 90%"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-500 pt-1 font-mono">
+                            <div><i class="fa-solid fa-clock text-slate-400 mr-1"></i> Rotación: 45 Días</div>
+                            <div><i class="fa-solid fa-shield text-brand-600 mr-1"></i> Garantía: Seguros</div>
+                        </div>
+                    </div>
+
+                    <button onclick="abrirModalInversion('Lote #105: Aceite y Harinas', '14.2%', '$80,000')" class="w-full bg-slate-900 hover:bg-brand-600 text-white font-semibold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                        Participar en este Lote <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Lote 3 -->
+                <div class="lote-card frio bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-5">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-bold text-brand-700 bg-brand-50 border border-brand-200 px-2.5 py-1 rounded-lg">LOTE #106 ● ÚLTIMOS CUPOS</span>
+                            <span class="text-xs font-extrabold text-amberAccent-600 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 font-mono">16.0% APY</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 leading-snug">Carga Conservada Proteína Porcina & Queso Madurado</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Cadena de frío monitoreada mediante IoT en tiempo real. Distribución pactada con 3 cadenas de supermercados.
+                        </p>
+                    </div>
+
+                    <div class="space-y-3 pt-3 border-t border-slate-100">
+                        <div class="flex justify-between text-xs font-semibold text-slate-600">
+                            <span>Avance de Fondeo</span>
+                            <span class="font-mono text-brand-600 font-bold">$114,000 / $120,000 USD (95%)</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                            <div class="bg-amberAccent-500 h-full rounded-full" style="width: 95%"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-500 pt-1 font-mono">
+                            <div><i class="fa-solid fa-clock text-slate-400 mr-1"></i> Rotación: 30 Días</div>
+                            <div><i class="fa-solid fa-snowflake text-blue-500 mr-1"></i> Frío Controlado</div>
+                        </div>
+                    </div>
+
+                    <button onclick="abrirModalInversion('Lote #106: Proteína Cárnica y Lácteos', '16.0%', '$120,000')" class="w-full bg-slate-900 hover:bg-brand-600 text-white font-semibold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                        Participar en este Lote <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 4: ANÁLISIS DE CADENA DE VALOR Y EFICIENCIA DE DESINTERMEDIACIÓN -->
+        <section id="cadena" class="space-y-6">
+            <!-- Introducción contextual -->
+            <div class="space-y-2">
+                <div class="inline-flex items-center gap-2 text-xs font-bold text-brand-700 bg-brand-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                    <i class="fa-solid fa-diagram-project"></i> Eficiencia Operativa Comparada
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Análisis del Margen y Desintermediación</h2>
+                <p class="text-slate-600 max-w-4xl text-sm sm:text-base">
+                    El canal de distribución tradicional acumula hasta un 35% de sobrecostos e ineficiencias entre intermediarios locales, acopiadores, fletes fraccionados y financiamiento bancario costoso. Nuestro modelo fondeado por microinversores consolida volumen directo desde origen.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <!-- Gráfico Comparativo Chart.js -->
+                <div class="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="text-base font-bold text-slate-900">Estructura de Costos por Tonelada de Víveres</h4>
+                            <p class="text-xs text-slate-500">Distribución Tradicional vs. Plataforma Desintermediada AGROVIV</p>
+                        </div>
+                    </div>
+
+                    <!-- Contenedor con height controlado -->
+                    <div class="chart-container">
+                        <canvas id="chartCadena"></canvas>
+                    </div>
+                </div>
+
+                <!-- Desglose Cualitativo de Ventajas -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-start gap-4">
+                        <div class="p-3 bg-red-50 text-red-600 rounded-xl font-bold text-lg">
+                            <i class="fa-solid fa-sitemap"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-900">Canal Tradicional (4-6 Intermediarios)</h4>
+                            <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                                Sube el precio final un +32%, genera mermas por retraso logístico del 4.8% y paga tasas de interés bancarias del 18-24% sobre capital de trabajo.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-5 rounded-2xl bg-brand-50/60 border border-brand-200 shadow-sm flex items-start gap-4">
+                        <div class="p-3 bg-brand-600 text-white rounded-xl font-bold text-lg">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-900">Canal Directo AGROVIV</h4>
+                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                                Compra directa consolidada con descuento del 20%, flete optimizado y reparto de utilidades directas al microinversor (14% APY) con mermas < 1.0%.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Tabla Resumen de Modelos -->
+                    <div class="overflow-x-auto border border-slate-200 rounded-2xl bg-white">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase font-mono">
+                                <tr>
+                                    <th class="p-3">Métrica</th>
+                                    <th class="p-3">Tradicional</th>
+                                    <th class="p-3 text-brand-700">AGROVIV</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
+                                <tr>
+                                    <td class="p-3 text-slate-500">Descuento Compra</td>
+                                    <td class="p-3">0% - 5%</td>
+                                    <td class="p-3 text-brand-600 font-bold">18% - 28%</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 text-slate-500">Tiempo de Giro</td>
+                                    <td class="p-3">110 Días</td>
+                                    <td class="p-3 text-brand-600 font-bold">58 Días</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 text-slate-500">Merma Biológica</td>
+                                    <td class="p-3 text-red-500">4.5%</td>
+                                    <td class="p-3 text-brand-600 font-bold">0.8%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 5: GOBERNANZA, MITIGACIÓN DE RIESGOS Y RESPALDO PATRIMONIAL -->
+        <section id="garantias" class="space-y-6">
+            <!-- Introducción contextual -->
+            <div class="space-y-2">
+                <div class="inline-flex items-center gap-2 text-xs font-bold text-brand-700 bg-brand-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                    <i class="fa-solid fa-shield-cat"></i> Arquitectura de Seguridad Fiduciaria
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Mitigación Estructural del Riesgo</h2>
+                <p class="text-slate-600 max-w-4xl text-sm sm:text-base">
+                    Para desacoplar el riesgo crediticio de la gestión biológica y logística, la plataforma opera bajo mecanismos de resguardo legal y financiero de grado institucional.
+                </p>
+            </div>
+
+            <!-- Grilla Bento de Módulos de Protección -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Certificados de Depósito (Warrants) -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:border-brand-500 transition-colors space-y-4">
+                    <div class="w-12 h-12 rounded-2xl bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-xl">
+                        <i class="fa-solid fa-file-contract"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">Garantía Real Mobiliaria (Warrants)</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Los títulos de propiedad de las cargas permanecen en Almacenes Generales de Depósito fiscalizados. La mercancía no se libera hasta que el distribuidor liquida el valor del lote en la cuenta de fideicomiso (*escrow*).
+                    </p>
+                    <div class="pt-2">
+                        <span class="inline-block text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">Relación LTV < 60%</span>
+                    </div>
+                </div>
+
+                <!-- Pólizas Multirriesgo -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:border-brand-500 transition-colors space-y-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amberAccent-600 flex items-center justify-center font-bold text-xl">
+                        <i class="fa-solid fa-building-shield"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">Cobertura Multirriesgo y Mermas</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Seguros de transporte terrestre y almacenamiento que garantizan la indemnización del 100% del capital ante siniestros de humedad, ruptura de frío, robo o mermas biológicas anómalas en tránsito.
+                    </p>
+                    <div class="pt-2">
+                        <span class="inline-block text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">Cobertura Seguros A+</span>
+                    </div>
+                </div>
+
+                <!-- Fondo de Primera Pérdida -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:border-brand-500 transition-colors space-y-4">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xl">
+                        <i class="fa-solid fa-vault"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">Tramo de Primera Pérdida (First-Loss)</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        El operador logístico aporta entre un 5% y un 10% del capital del lote como subordinado. Este colchón absorbe cualquier imprevisto de mercado antes de tocar el capital de los inversores.
+                    </p>
+                    <div class="pt-2">
+                        <span class="inline-block text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">Colchón Subordinado 8%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="bg-slate-900 text-slate-400 text-xs border-t border-slate-800 mt-16 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold text-base">
+                        <i class="fa-solid fa-wheat-awn"></i>
+                    </div>
+                    <span class="text-lg font-bold text-white tracking-tight">AGROVIV Capital</span>
+                </div>
+                <div class="flex gap-6 text-slate-400">
+                    <a href="#modelo" class="hover:text-white">Modelo</a>
+                    <a href="#simulador" class="hover:text-white">Simulador</a>
+                    <a href="#lotes" class="hover:text-white">Lotes</a>
+                    <a href="#garantias" class="hover:text-white">Garantías</a>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500">
+                <p>© 2026 AGROVIV Capital Inc. Plataforma de Tecnologías Financieras para la Desintermediación Agroalimentaria.</p>
+                <p>Las inversiones en mercancías físicas conllevan riesgos logísticos mitigados mediante warrants y pólizas.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL INTERACTIVO DE SUSCRIPCIÓN / INVERSIÓN -->
+    <div id="modalInversion" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 border border-slate-100 relative animate-in fade-in zoom-in-95 duration-200">
+            <!-- Botón Cerrar -->
+            <button onclick="cerrarModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 text-xl font-bold">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="space-y-2">
+                <div class="inline-block bg-brand-100 text-brand-800 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md tracking-wider">Pre-financiamiento de Lote</div>
+                <h3 id="modal-titulo-lote" class="text-xl font-bold text-slate-900">Suscripción de Capital</h3>
+                <p class="text-xs text-slate-500">Complete los datos para emitir su pre-orden de participación fiduciaria.</p>
+            </div>
+
+            <form onsubmit="confirmarInversion(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre Completo o Entidad Jurídica</label>
+                    <input type="text" required placeholder="Ej. Ana María Gómez / Inversiones Andes SAS" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Correo Electrónico para Contrato</label>
+                    <input type="email" required placeholder="inversor@dominio.com" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Monto Compromiso (USD)</label>
+                        <input id="modal-monto-input" type="number" min="500" step="500" value="5000" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-brand-700 focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Rendimiento Estimado</label>
+                        <input id="modal-apy-display" type="text" readonly value="14.2% APY" class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-slate-600 outline-none">
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-500 space-y-1">
+                    <div class="flex justify-between">
+                        <span>Resguardo:</span>
+                        <strong class="text-slate-700">Warrant General de Depósito</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Cuenta Custodia:</span>
+                        <strong class="text-slate-700">Fideicomiso Bancario Segregado</strong>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-brand-600/30 transition-all text-xs flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-signature"></i> Confirmar Pre-Orden de Inversión
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- LOGICA JAVASCRIPT RECTORA -->
+    <script>
+        // Variables de Estado de Aplicación
+        let chartProyeccionInstance = null;
+        let chartCadenaInstance = null;
+
+        // Inicialización tras carga de DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            initChartProyeccion();
+            initChartCadena();
+            actualizarSimulacion();
+        });
+
+        // 1. LÓGICA DEL SIMULADOR DE INVERSIÓN
+        function actualizarSimulacion() {
+            const capital = parseFloat(document.getElementById('range-capital').value);
+            const meses = parseInt(document.getElementById('range-meses').value);
+            const apyTasa = parseFloat(document.getElementById('select-categoria').value);
+
+            // Cálculos Financieros
+            const rotaciones = meses / 2; // Un giro cada 60 días aprox.
+            const ganancia = capital * (apyTasa * (meses / 12));
+            const total = capital + ganancia;
+
+            // Actualizar interfaz HTML
+            document.getElementById('label-capital').innerText = `$${capital.toLocaleString()} USD`;
+            document.getElementById('label-meses').innerText = `${meses} Meses (${rotaciones.toFixed(0)} Ciclos)`;
+            document.getElementById('res-ganancia').innerText = `$${Math.round(ganancia).toLocaleString()} USD`;
+            document.getElementById('res-apy').innerText = `${(apyTasa * 100).toFixed(1)}%`;
+            document.getElementById('res-total').innerText = `$${Math.round(total).toLocaleString()} USD`;
+
+            // Actualizar Gráfico Chart.js
+            actualizarGraficoProyeccion(capital, meses, apyTasa);
+        }
+
+        function initChartProyeccion() {
+            const ctx = document.getElementById('chartProyeccion').getContext('2d');
+            chartProyeccionInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mes 0', 'Mes 2', 'Mes 4', 'Mes 6', 'Mes 8', 'Mes 10', 'Mes 12'],
+                    datasets: [
+                        {
+                            label: 'Portafolio AGROVIV (Víveres)',
+                            borderColor: '#059669',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3,
+                            data: [5000, 5115, 5230, 5345, 5460, 5575, 5690]
+                        },
+                        {
+                            label: 'Depósito Tradicional Bancario (4% APY)',
+                            borderColor: '#94a3b8',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.1,
+                            data: [5000, 5033, 5066, 5100, 5133, 5166, 5200]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { font: { family: 'Plus Jakarta Sans', size: 11 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: $${Math.round(context.raw).toLocaleString()} USD`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: value => '$' + value,
+                                font: { family: 'JetBrains Mono', size: 10 }
+                            },
+                            grid: { color: 'rgba(226, 232, 240, 0.6)' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Plus Jakarta Sans', size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function actualizarGraficoProyeccion(capital, mesesMax, apy) {
+            if (!chartProyeccionInstance) return;
+
+            const labels = [];
+            const dataAgroviv = [];
+            const dataBanco = [];
+
+            const pasos = 6;
+            const pasoMeses = mesesMax / pasos;
+
+            for (let i = 0; i <= pasos; i++) {
+                const mesActual = (pasoMeses * i).toFixed(1);
+                labels.push(`Mes ${mesActual}`);
+
+                const gananciaAgroviv = capital * (apy * (mesActual / 12));
+                const gananciaBanco = capital * (0.04 * (mesActual / 12));
+
+                dataAgroviv.push(Math.round(capital + gananciaAgroviv));
+                dataBanco.push(Math.round(capital + gananciaBanco));
+            }
+
+            chartProyeccionInstance.data.labels = labels;
+            chartProyeccionInstance.data.datasets[0].data = dataAgroviv;
+            chartProyeccionInstance.data.datasets[1].data = dataBanco;
+            chartProyeccionInstance.update();
+        }
+
+        // 2. LÓGICA DEL GRÁFICO DE CADENA DE VALOR
+        function initChartCadena() {
+            const ctx = document.getElementById('chartCadena').getContext('2d');
+            chartCadenaInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Precio Finca/Origen', 'Flete & Refrigeración', 'Intermediación & Mermas', 'Margen Inversor / Distribución'],
+                    datasets: [
+                        {
+                            label: 'Canal Tradicional ($/TN)',
+                            backgroundColor: '#cbd5e1',
+                            borderRadius: 6,
+                            data: [600, 180, 240, 80]
+                        },
+                        {
+                            label: 'Modelo AGROVIV ($/TN)',
+                            backgroundColor: '#059669',
+                            borderRadius: 6,
+                            data: [600, 110, 30, 210]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { font: { family: 'Plus Jakarta Sans', size: 11 } }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: value => '$' + value,
+                                font: { family: 'JetBrains Mono', size: 10 }
+                            },
+                            grid: { color: 'rgba(226, 232, 240, 0.6)' }
+                        },
+                        x: {
+                            ticks: { font: { family: 'Plus Jakarta Sans', size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 3. FILTRADO DE LOTES
+        function filtrarLotes(categoria) {
+            const cards = document.querySelectorAll('.lote-card');
+            const btns = document.querySelectorAll('#filtro-lotes-container .btn-filtro');
+
+            btns.forEach(b => {
+                b.classList.remove('bg-brand-600', 'text-white');
+                b.classList.add('bg-white', 'text-slate-700');
+            });
+
+            event.target.classList.remove('bg-white', 'text-slate-700');
+            event.target.classList.add('bg-brand-600', 'text-white');
+
+            cards.forEach(card => {
+                if (categoria === 'todos' || card.classList.contains(categoria)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // 4. MODAL Y TRANSACCIONALIDAD
+        function abrirModalInversion(nombreLote, apy, meta) {
+            document.getElementById('modal-titulo-lote').innerText = nombreLote;
+            document.getElementById('modal-apy-display').value = apy;
+            document.getElementById('modalInversion').classList.remove('hidden');
+        }
+
+        function abrirModalInversionConSimulacion() {
+            const capital = document.getElementById('range-capital').value;
+            const apyText = document.getElementById('res-apy').innerText + ' APY';
+            document.getElementById('modal-monto-input').value = capital;
+            abrirModalInversion('Suscripción Paramétrica Personalizada', apyText, '$50,000');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalInversion').classList.add('hidden');
+        }
+
+        function confirmarInversion(e) {
+            e.preventDefault();
+            alert('¡Pre-orden registrada con éxito! Ha recibido en su correo electrónico el pliego de condiciones de depósito e instrucciones del fideicomiso.');
+            cerrarModal();
+        }
+    </script>
+</body>
+</html>
